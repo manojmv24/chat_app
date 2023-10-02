@@ -23,6 +23,9 @@ class _AuthScreenState extends State<AuthScreen> {
 
       try {
         if (login) {
+          var response =
+              await authInstance.signInWithEmailAndPassword(email: email_id, password: password);
+          print(response);
         } else {
           var signupResponse = await authInstance.createUserWithEmailAndPassword(
               email: email_id, password: password);
