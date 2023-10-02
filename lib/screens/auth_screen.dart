@@ -1,5 +1,8 @@
 import 'package:chat_app_four/widgets/image_widget.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+var authInstance = FirebaseAuth.instance;
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({Key? key}) : super(key: key);
@@ -14,17 +17,38 @@ class _AuthScreenState extends State<AuthScreen> {
   var password = "";
   var formkey = GlobalKey<FormState>();
 
-  void validateForm() {
+  void validateForm() async {
     if (formkey.currentState!.validate()) {
       formkey.currentState!.save();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("email id:$email_id, password:$password "),
-        ),
-      );
 
-      if (login) {
-      } else {}
+      try {
+        if (login) {
+        } else {
+          var signupResponse = await authInstance.createUserWithEmailAndPassword(
+              email: email_id, password: password);
+          print("email: $email_id");
+          print("password: $password");
+          print("signup_response: $signupResponse");
+        }
+      } on FirebaseAuthException catch (e) {
+        var message = "";
+        if (e.code == "email-already-in-use") {
+          message = "**email-already-in-use**";
+        } else if (e.code == "invalid-email") {
+          message = "**invalid-email**";
+        } else if (e.code == "operation-not-allowed") {
+          message = "**operation-not-allowed**";
+        } else if (e.code == "weak-password") {
+          message = "**weak-password**";
+        } else {
+          message = "try again later";
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+          ),
+        );
+      }
     }
   }
 
