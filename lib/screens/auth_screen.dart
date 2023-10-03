@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:chat_app_four/widgets/image_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -16,42 +18,45 @@ class _AuthScreenState extends State<AuthScreen> {
   var email_id = "";
   var password = "";
   var formkey = GlobalKey<FormState>();
+  File? imageFile;
 
   void validateForm() async {
-    if (formkey.currentState!.validate()) {
-      formkey.currentState!.save();
+    if (!formkey.currentState!.validate()) {
+      return;
+    }
 
-      try {
-        if (login) {
-          var response =
-              await authInstance.signInWithEmailAndPassword(email: email_id, password: password);
-          print(response);
-        } else {
-          var signupResponse = await authInstance.createUserWithEmailAndPassword(
-              email: email_id, password: password);
-          print("email: $email_id");
-          print("password: $password");
-          print("signup_response: $signupResponse");
-        }
-      } on FirebaseAuthException catch (e) {
-        var message = "";
-        if (e.code == "email-already-in-use") {
-          message = "**email-already-in-use**";
-        } else if (e.code == "invalid-email") {
-          message = "**invalid-email**";
-        } else if (e.code == "operation-not-allowed") {
-          message = "**operation-not-allowed**";
-        } else if (e.code == "weak-password") {
-          message = "**weak-password**";
-        } else {
-          message = "try again later";
-        }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(message),
-          ),
-        );
+    formkey.currentState!.save();
+
+    try {
+      if (login) {
+        var response =
+            await authInstance.signInWithEmailAndPassword(email: email_id, password: password);
+        print(response);
+      } else {
+        var signupResponse =
+            await authInstance.createUserWithEmailAndPassword(email: email_id, password: password);
+        print("email: $email_id");
+        print("password: $password");
+        print("signup_response: $signupResponse");
       }
+    } on FirebaseAuthException catch (e) {
+      var message = "";
+      if (e.code == "email-already-in-use") {
+        message = "**email-already-in-use**";
+      } else if (e.code == "invalid-email") {
+        message = "**invalid-email**";
+      } else if (e.code == "operation-not-allowed") {
+        message = "**operation-not-allowed**";
+      } else if (e.code == "weak-password") {
+        message = "**weak-password**";
+      } else {
+        message = "try again later";
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+        ),
+      );
     }
   }
 
@@ -76,7 +81,12 @@ class _AuthScreenState extends State<AuthScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (!login) const ImageWidget(),
+                          if (!login)
+                            ImageWidget(
+                              onPickedImage: (file) {
+                                imageFile = file!;
+                              },
+                            ),
                           TextFormField(
                             decoration: const InputDecoration(labelText: "Email id"),
                             autocorrect: false,
