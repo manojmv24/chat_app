@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:chat_app_four/widgets/image_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 
 var authInstance = FirebaseAuth.instance;
@@ -25,6 +26,27 @@ class _AuthScreenState extends State<AuthScreen> {
       return;
     }
 
+    if (!login && imageFile == null) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text("Picture"),
+            icon: const Icon(Icons.warning),
+            content: const Text("Upload user picture"),
+            actions: [
+              ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text("Ok"))
+            ],
+          );
+        },
+      );
+      return;
+    }
+
     formkey.currentState!.save();
 
     try {
@@ -35,6 +57,14 @@ class _AuthScreenState extends State<AuthScreen> {
       } else {
         var signupResponse =
             await authInstance.createUserWithEmailAndPassword(email: email_id, password: password);
+        var storageRef = FirebaseStorage.instance
+            .ref()
+            .child("user_images")
+            .child('${signupResponse.user!.uid}.jpg');
+
+        await storageRef.putFile(imageFile!);
+        var imageUrl = storageRef.getDownloadURL();
+
         print("email: $email_id");
         print("password: $password");
         print("signup_response: $signupResponse");

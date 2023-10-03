@@ -22,6 +22,8 @@ class _ImageWidgetState extends State<ImageWidget> {
     setState(() {
       pickedImageFile = File(pickedImage.path);
     });
+
+    widget.onPickedImage(pickedImageFile!);
   }
 
   @override
