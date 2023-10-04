@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:chat_app_four/widgets/image_widget.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -63,11 +64,23 @@ class _AuthScreenState extends State<AuthScreen> {
             .child('${signupResponse.user!.uid}.jpg');
 
         await storageRef.putFile(imageFile!);
-        var imageUrl = storageRef.getDownloadURL();
 
-        print("email: $email_id");
-        print("password: $password");
-        print("signup_response: $signupResponse");
+        var imageUrl = await storageRef.getDownloadURL();
+
+        try {
+          await FirebaseFirestore.instance
+              .collection("users")
+              .doc(
+                signupResponse.user!.uid,
+              )
+              .set({
+            'username': 'tobeset..',
+            'email': email_id,
+            'url': imageUrl,
+          });
+        } catch (e) {
+          print("firebase firestore exception: $e");
+        }
       }
     } on FirebaseAuthException catch (e) {
       var message = "";
@@ -87,7 +100,7 @@ class _AuthScreenState extends State<AuthScreen> {
           content: Text(message),
         ),
       );
-    }
+    } catch (Exception) {}
   }
 
   @override
